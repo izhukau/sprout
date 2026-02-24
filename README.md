@@ -1,4 +1,9 @@
-# Sprout Deploy
+# Sprout - a project completed in 20 hours at a hackathon.
+
+overview: [youtube link](https://youtu.be/Cdysi5AAz5A?si=VT1h-44L1y6ySLAe)
+
+Sprout builds personalised learning pathways on any topic. Interested in fauna from darkest Peru? Or perhaps you are cramming for a linear algebra exam. Describe the topic, upload your notes, and watch Sprout's multi-agents autonomously generate a three-dimensional learning network which adapts to you. Gone are the days of scrolling through endless AI chat logs. With Sprout you can explore your own 3D knowledge network using natural hand movements (not keyboard or mouse) and navigate ideas as if you are exploring your own mind. Dive into a concept node to start learning. Sprout's teaching follows one core methodology: the learner should reach the answer themselves, Sprout is just there to show them the path. With quiz, code, text and drawing based learning blocks, Sprout's multi-media approach tests our learners holistically. With an integrated support chat and voice tutor powered by ElevenLabs, Sprout guides learners to reach the answer themselves.
+
 
 Overview and setup guide for the two services in this repo:
 
