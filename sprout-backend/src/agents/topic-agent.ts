@@ -11,6 +11,7 @@ import { v4 as uuid } from "uuid";
 import { runAgentLoop, type AgentTool } from "./agent-loop";
 import { parseJsonResponse } from "./parse-json";
 import type { SSEWriter } from "../utils/sse";
+import { CLAUDE_MODEL, CLAUDE_MODEL_SMALL } from "./models";
 
 const anthropic = new Anthropic();
 
@@ -127,7 +128,7 @@ export async function runTopicAgent(options: {
           .join("\n");
 
         const response = await anthropic.messages.create({
-          model: "claude-sonnet-4-6",
+          model: CLAUDE_MODEL,
           max_tokens: 4096,
           messages: [
             {
@@ -318,7 +319,7 @@ The concepts you create will be used by downstream agents to generate subconcept
   sse.send("agent_start", { agent: "topic" });
 
   const result = await runAgentLoop({
-    model: small ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6",
+    model: small ? CLAUDE_MODEL_SMALL : CLAUDE_MODEL,
     systemPrompt,
     tools,
     initialMessage,
@@ -347,7 +348,7 @@ The concepts you create will be used by downstream agents to generate subconcept
     id: uuid(),
     nodeId: topicNode.id,
     trigger: "on_first_enter",
-    model: "claude-sonnet-4-6",
+    model: small ? CLAUDE_MODEL_SMALL : CLAUDE_MODEL,
     prompt: `Topic agent bootstrap for: ${topicNode.title}`,
     responseMeta: JSON.stringify({
       count: savedConcepts.length,

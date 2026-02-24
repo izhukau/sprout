@@ -11,6 +11,7 @@ import { and, eq } from "drizzle-orm";
 import { v4 as uuid } from "uuid";
 import { runAgentLoop, type AgentTool } from "./agent-loop";
 import type { SSEWriter } from "../utils/sse";
+import { CLAUDE_MODEL, CLAUDE_MODEL_SMALL } from "./models";
 
 type NodeRow = typeof nodes.$inferSelect;
 
@@ -294,7 +295,7 @@ Save all questions first, then all subconcepts, then all edges.`;
   });
 
   const result = await runAgentLoop({
-    model: small ? "claude-haiku-4-5-20251001" : "claude-sonnet-4-6",
+    model: small ? CLAUDE_MODEL_SMALL : CLAUDE_MODEL,
     systemPrompt,
     tools,
     initialMessage,
@@ -331,7 +332,7 @@ Save all questions first, then all subconcepts, then all edges.`;
     id: uuid(),
     nodeId: conceptNode.id,
     trigger: "on_first_enter",
-    model: "claude-sonnet-4-6",
+    model: CLAUDE_MODEL,
     prompt: `Subconcept bootstrap for: ${conceptNode.title}`,
     responseMeta: JSON.stringify({
       count: savedSubconcepts.length,

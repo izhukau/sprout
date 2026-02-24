@@ -11,6 +11,7 @@ import {
 } from "../db/schema";
 import { and, eq, inArray, desc } from "drizzle-orm";
 import { v4 as uuid } from "uuid";
+import { CLAUDE_MODEL } from "./models";
 
 export interface ChatMessage {
   role: "user" | "assistant";
@@ -583,7 +584,7 @@ STYLE:
   const reasoningSteps: string[] = [];
 
   const result = await runAgentLoop({
-    model: "claude-sonnet-4-6",
+    model: CLAUDE_MODEL,
     systemPrompt,
     tools,
     conversationHistory,

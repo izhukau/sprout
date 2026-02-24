@@ -8,10 +8,9 @@ Overview and setup guide for the two services in this repo:
 ## Prerequisites
 - Node.js 20+ and npm.
 - Anaconda/Miniconda (or Python 3.11+) for the computer-vision hand tracking service.
-- Gemini API key.
+- Anthropic API key.
 - AWS credentials and an S3 bucket for document uploads (skip uploads if you don’t set these).
 - Webcam access (for hand tracking).
-- macOS/Linux with a working camera driver; on Windows, ensure `opencv-python` can access DirectShow.
 
 ## Quick Start (development)
 1) **Backend API**
@@ -43,10 +42,7 @@ Overview and setup guide for the two services in this repo:
 ## Environment Reference
 ### Backend (`sprout-backend/.env`)
 ```
-GEMINI_API_KEY=your_key
-# Optional model overrides (defaults already set to flash to fit free tier):
-# GEMINI_MODEL=gemini-2.5-flash
-# GEMINI_MODEL_SMALL=gemini-2.5-flash
+ANTHROPIC_API_KEY=your_key
 AWS_ACCESS_KEY_ID=your_key
 AWS_SECRET_ACCESS_KEY=your_secret
 AWS_REGION=us-east-1
@@ -55,7 +51,7 @@ DB_PATH=./sprout.db        # optional; default shown
 PORT=8000                  # optional
 ```
 
-### Frontend (`sprout-frontend/.env`)
+### Frontend (`sprout-frontend/.env.local`)
 ```
 NEXT_PUBLIC_BACKEND_ORIGIN=http://localhost:8000
 NEXT_PUBLIC_BACKEND_PROXY_PREFIX=/backend-api   # matches next.config.ts rewrite

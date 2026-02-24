@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { parseJsonResponse } from "./parse-json";
+import { CLAUDE_MODEL } from "./models";
 
 const anthropic = new Anthropic();
 
@@ -27,7 +28,7 @@ export async function generateDiagnosticQuestions(
   const descLine = conceptDesc ? `Description: ${conceptDesc}` : "";
 
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-6",
+    model: CLAUDE_MODEL,
     max_tokens: 4096,
     messages: [
       {

@@ -21,6 +21,7 @@ import {
   type ConceptReviewAddition,
   type SubconceptReviewAddition,
 } from "../agents/review-learning-path";
+import { CLAUDE_MODEL } from "../agents/models";
 import { initSSE } from "../utils/sse";
 import pLimit from "p-limit";
 
@@ -143,7 +144,8 @@ async function ensureDiagnosticBundle(
   const requiredAnswers = assessmentQuestions.length;
   const isComplete =
     !!assessment.completedAt ||
-    (assessmentQuestions.length > 0 && answeredCount >= assessmentQuestions.length);
+    (assessmentQuestions.length > 0 &&
+      answeredCount >= assessmentQuestions.length);
 
   return {
     assessment,
@@ -1017,7 +1019,7 @@ router.post("/nodes/:nodeId/review", async (req, res, next) => {
           id: uuid(),
           nodeId: currentNode.id,
           trigger: "manual_regenerate",
-          model: "claude-sonnet-4-6",
+          model: CLAUDE_MODEL,
           prompt: `Post-completion concept review for: ${currentNode.title}`,
           responseMeta: JSON.stringify({
             mode: "path_review_agent",
@@ -1056,7 +1058,7 @@ router.post("/nodes/:nodeId/review", async (req, res, next) => {
         id: uuid(),
         nodeId: currentNode.id,
         trigger: "manual_regenerate",
-        model: "claude-sonnet-4-6",
+        model: CLAUDE_MODEL,
         prompt: `Post-completion subconcept review for: ${currentNode.title}`,
         responseMeta: JSON.stringify({
           mode: "path_review_agent",

@@ -11,6 +11,7 @@ import { v4 as uuid } from "uuid";
 import { runAgentLoop, type AgentTool } from "./agent-loop";
 import { gradeAnswers } from "./grade-answers";
 import type { SSEWriter } from "../utils/sse";
+import { CLAUDE_MODEL } from "./models";
 
 type NodeRow = typeof nodes.$inferSelect;
 type AnswerRow = typeof answers.$inferSelect;
@@ -67,7 +68,10 @@ export async function runConceptRefinementAgent(options: {
       },
       async execute() {
         if (!gradableQuestions.length) {
-          return JSON.stringify({ message: "No gradable answers found.", gradedCount: 0 });
+          return JSON.stringify({
+            message: "No gradable answers found.",
+            gradedCount: 0,
+          });
         }
 
         const graded = await gradeAnswers(conceptNode.title, gradableQuestions);
@@ -107,7 +111,8 @@ export async function runConceptRefinementAgent(options: {
           strengths: summary.strengths,
           gaps: summary.gaps,
           items: graded.map((g) => ({
-            prompt: gradableQuestions.find((q) => q.questionId === g.questionId)?.prompt,
+            prompt: gradableQuestions.find((q) => q.questionId === g.questionId)
+              ?.prompt,
             isCorrect: g.isCorrect,
             score: g.score,
             feedback: g.feedback,
@@ -129,7 +134,10 @@ export async function runConceptRefinementAgent(options: {
           .select()
           .from(nodes)
           .where(
-            and(eq(nodes.parentId, conceptNode.id), eq(nodes.type, "subconcept")),
+            and(
+              eq(nodes.parentId, conceptNode.id),
+              eq(nodes.type, "subconcept"),
+            ),
           );
 
         const subconceptIds = subconcepts.map((s) => s.id);
@@ -153,7 +161,10 @@ export async function runConceptRefinementAgent(options: {
 
         return JSON.stringify({
           count: subconcepts.length,
-          subconcepts: subconcepts.map((s) => ({ title: s.title, desc: s.desc })),
+          subconcepts: subconcepts.map((s) => ({
+            title: s.title,
+            desc: s.desc,
+          })),
           edges,
         });
       },
@@ -170,12 +181,17 @@ export async function runConceptRefinementAgent(options: {
           depends_on: {
             type: "array",
             items: { type: "string" },
-            description: "Titles of existing subconcepts this one depends on (can be empty)",
+            description:
+              "Titles of existing subconcepts this one depends on (can be empty)",
           },
         },
         required: ["title", "desc"],
       },
-      async execute(input: { title: string; desc: string; depends_on?: string[] }) {
+      async execute(input: {
+        title: string;
+        desc: string;
+        depends_on?: string[];
+      }) {
         const subconceptId = uuid();
         await db.insert(nodes).values({
           id: subconceptId,
@@ -201,9 +217,14 @@ export async function runConceptRefinementAgent(options: {
             .select()
             .from(nodes)
             .where(
-              and(eq(nodes.parentId, conceptNode.id), eq(nodes.type, "subconcept")),
+              and(
+                eq(nodes.parentId, conceptNode.id),
+                eq(nodes.type, "subconcept"),
+              ),
             );
-          const titleToId = new Map(siblingSubconcepts.map((s) => [s.title, s.id]));
+          const titleToId = new Map(
+            siblingSubconcepts.map((s) => [s.title, s.id]),
+          );
 
           for (const depTitle of input.depends_on) {
             const depId = titleToId.get(depTitle);
@@ -231,7 +252,11 @@ export async function runConceptRefinementAgent(options: {
           }
         }
 
-        return JSON.stringify({ saved: true, nodeId: node.id, title: node.title });
+        return JSON.stringify({
+          saved: true,
+          nodeId: node.id,
+          title: node.title,
+        });
       },
     },
     {
@@ -241,7 +266,10 @@ export async function runConceptRefinementAgent(options: {
       input_schema: {
         type: "object" as const,
         properties: {
-          title: { type: "string", description: "Title of the subconcept to remove" },
+          title: {
+            type: "string",
+            description: "Title of the subconcept to remove",
+          },
         },
         required: ["title"],
       },
@@ -257,7 +285,9 @@ export async function runConceptRefinementAgent(options: {
           );
         const target = subconcepts.find((s) => s.title === input.title);
         if (!target) {
-          return JSON.stringify({ error: `Subconcept not found: "${input.title}"` });
+          return JSON.stringify({
+            error: `Subconcept not found: "${input.title}"`,
+          });
         }
 
         // Remove edges involving this node
@@ -322,7 +352,8 @@ export async function runConceptRefinementAgent(options: {
         required: [],
       },
       async execute() {
-        if (!conceptNode.parentId) return JSON.stringify({ futureConcepts: [] });
+        if (!conceptNode.parentId)
+          return JSON.stringify({ futureConcepts: [] });
 
         const siblingConcepts = await db
           .select()
@@ -334,7 +365,8 @@ export async function runConceptRefinementAgent(options: {
             ),
           );
 
-        if (siblingConcepts.length <= 1) return JSON.stringify({ futureConcepts: [] });
+        if (siblingConcepts.length <= 1)
+          return JSON.stringify({ futureConcepts: [] });
 
         const conceptIds = siblingConcepts.map((n) => n.id);
         const conceptIdSet = new Set(conceptIds);
@@ -389,7 +421,9 @@ export async function runConceptRefinementAgent(options: {
       },
       async execute(input: { title: string; desc: string }) {
         if (!conceptNode.parentId) {
-          return JSON.stringify({ error: "Cannot add prerequisite — no parent topic" });
+          return JSON.stringify({
+            error: "Cannot add prerequisite — no parent topic",
+          });
         }
 
         const conceptId = uuid();
@@ -446,7 +480,11 @@ export async function runConceptRefinementAgent(options: {
           edge: { sourceNodeId: conceptId, targetNodeId: conceptNode.id },
         });
 
-        return JSON.stringify({ saved: true, nodeId: newNode.id, title: newNode.title });
+        return JSON.stringify({
+          saved: true,
+          nodeId: newNode.id,
+          title: newNode.title,
+        });
       },
     },
     {
@@ -463,7 +501,10 @@ export async function runConceptRefinementAgent(options: {
           .select()
           .from(nodes)
           .where(
-            and(eq(nodes.parentId, conceptNode.id), eq(nodes.type, "subconcept")),
+            and(
+              eq(nodes.parentId, conceptNode.id),
+              eq(nodes.type, "subconcept"),
+            ),
           );
 
         const subconceptIds = subconcepts.map((s) => s.id);
@@ -471,7 +512,11 @@ export async function runConceptRefinementAgent(options: {
         const titleById = new Map(subconcepts.map((s) => [s.id, s.title]));
 
         if (!subconceptIds.length) {
-          return JSON.stringify({ valid: true, issues: [], message: "No subconcepts to validate." });
+          return JSON.stringify({
+            valid: true,
+            issues: [],
+            message: "No subconcepts to validate.",
+          });
         }
 
         const allEdges = await db
@@ -479,7 +524,9 @@ export async function runConceptRefinementAgent(options: {
           .from(nodeEdges)
           .where(inArray(nodeEdges.sourceNodeId, subconceptIds));
 
-        const internalEdges = allEdges.filter((e) => subconceptIdSet.has(e.targetNodeId));
+        const internalEdges = allEdges.filter((e) =>
+          subconceptIdSet.has(e.targetNodeId),
+        );
 
         // Also get incoming edges
         const incomingEdges = await db
@@ -487,7 +534,9 @@ export async function runConceptRefinementAgent(options: {
           .from(nodeEdges)
           .where(inArray(nodeEdges.targetNodeId, subconceptIds));
 
-        const internalIncoming = incomingEdges.filter((e) => subconceptIdSet.has(e.sourceNodeId));
+        const internalIncoming = incomingEdges.filter((e) =>
+          subconceptIdSet.has(e.sourceNodeId),
+        );
 
         const issues: string[] = [];
 
@@ -502,7 +551,9 @@ export async function runConceptRefinementAgent(options: {
           .map((s) => s.title);
 
         if (orphanNodes.length && subconcepts.length > 1) {
-          issues.push(`Orphan nodes (no connections): ${orphanNodes.join(", ")}`);
+          issues.push(
+            `Orphan nodes (no connections): ${orphanNodes.join(", ")}`,
+          );
         }
 
         // Check for broken edges (target doesn't exist in subconcepts)
@@ -515,7 +566,9 @@ export async function runConceptRefinementAgent(options: {
         }
 
         // BFS reachability from root nodes (nodes with no incoming internal edges)
-        const hasIncoming = new Set(internalIncoming.map((e) => e.targetNodeId));
+        const hasIncoming = new Set(
+          internalIncoming.map((e) => e.targetNodeId),
+        );
         const roots = subconceptIds.filter((id) => !hasIncoming.has(id));
 
         const adjacency = new Map<string, string[]>();
@@ -542,7 +595,9 @@ export async function runConceptRefinementAgent(options: {
           .map((s) => s.title);
 
         if (unreachableNodes.length) {
-          issues.push(`Unreachable nodes (not connected to any root): ${unreachableNodes.join(", ")}`);
+          issues.push(
+            `Unreachable nodes (not connected to any root): ${unreachableNodes.join(", ")}`,
+          );
         }
 
         return JSON.stringify({
@@ -570,7 +625,9 @@ export async function runConceptRefinementAgent(options: {
       },
       async execute(input: { title: string; desc: string }) {
         if (!conceptNode.parentId) {
-          return JSON.stringify({ error: "Cannot add follow-up — no parent topic" });
+          return JSON.stringify({
+            error: "Cannot add follow-up — no parent topic",
+          });
         }
 
         const conceptId = uuid();
@@ -608,7 +665,9 @@ export async function runConceptRefinementAgent(options: {
           );
         const siblingIdSet = new Set(siblingConcepts.map((s) => s.id));
 
-        const siblingOutgoing = outgoingEdges.filter((e) => siblingIdSet.has(e.targetNodeId));
+        const siblingOutgoing = outgoingEdges.filter((e) =>
+          siblingIdSet.has(e.targetNodeId),
+        );
 
         for (const edge of siblingOutgoing) {
           // Delete old edge: current → old_target
@@ -641,7 +700,11 @@ export async function runConceptRefinementAgent(options: {
           edge: { sourceNodeId: conceptNode.id, targetNodeId: conceptId },
         });
 
-        return JSON.stringify({ saved: true, nodeId: newNode.id, title: newNode.title });
+        return JSON.stringify({
+          saved: true,
+          nodeId: newNode.id,
+          title: newNode.title,
+        });
       },
     },
     {
@@ -660,7 +723,11 @@ export async function runConceptRefinementAgent(options: {
           .where(eq(userNodeProgress.userId, userId));
 
         if (!allProgress.length) {
-          return JSON.stringify({ completedConcepts: [], overallLevel: "new_student", averageMastery: 0 });
+          return JSON.stringify({
+            completedConcepts: [],
+            overallLevel: "new_student",
+            averageMastery: 0,
+          });
         }
 
         // Get node titles for progress entries
@@ -681,7 +748,9 @@ export async function runConceptRefinementAgent(options: {
 
         const scores = allProgress.map((p) => p.masteryScore);
         const averageMastery = scores.length
-          ? Number((scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(3))
+          ? Number(
+              (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(3),
+            )
           : 0;
 
         let overallLevel: string;
@@ -729,7 +798,7 @@ GUIDELINES:
   sse.send("agent_start", { agent: "concept_refinement" });
 
   const result = await runAgentLoop({
-    model: "claude-sonnet-4-6",
+    model: CLAUDE_MODEL,
     systemPrompt,
     tools,
     initialMessage,
@@ -744,7 +813,10 @@ GUIDELINES:
       onToolResult(name, resultStr) {
         sse.send("tool_result", {
           tool: name,
-          summary: resultStr.length > 200 ? resultStr.slice(0, 200) + "..." : resultStr,
+          summary:
+            resultStr.length > 200
+              ? resultStr.slice(0, 200) + "..."
+              : resultStr,
         });
       },
     },
@@ -755,7 +827,7 @@ GUIDELINES:
     id: uuid(),
     nodeId: conceptNode.id,
     trigger: "manual_regenerate",
-    model: "claude-sonnet-4-6",
+    model: CLAUDE_MODEL,
     prompt: `Concept refinement for: ${conceptNode.title}`,
     responseMeta: JSON.stringify({
       mode: "concept_refinement_agent",

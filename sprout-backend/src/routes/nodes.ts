@@ -16,6 +16,7 @@ import {
   type SubconceptGenerationDiagnostic,
 } from "../agents/generate-subconcepts";
 import { generateConcepts } from "../agents/generate-concepts";
+import { CLAUDE_MODEL } from "../agents/models";
 
 const router = Router();
 
@@ -162,7 +163,10 @@ router.get("/", async (req, res, next) => {
     if (parentId) conditions.push(eq(nodes.parentId, parentId));
 
     const query = conditions.length
-      ? db.select().from(nodes).where(and(...conditions))
+      ? db
+          .select()
+          .from(nodes)
+          .where(and(...conditions))
       : db.select().from(nodes);
     const result = await query;
     res.json(result);
@@ -421,7 +425,7 @@ router.post("/:id/generate-subconcepts", async (req, res, next) => {
       id: uuid(),
       nodeId: node.id,
       trigger: "on_first_enter",
-      model: "claude-sonnet-4-6",
+      model: CLAUDE_MODEL,
       prompt: `Generate subconcepts for: ${node.title}`,
       responseMeta: JSON.stringify({
         count: subconcepts.length,
@@ -540,7 +544,7 @@ router.post("/:id/generate-concepts", async (req, res, next) => {
       id: uuid(),
       nodeId: node.id,
       trigger: "on_first_enter",
-      model: "claude-sonnet-4-6",
+      model: CLAUDE_MODEL,
       prompt: `Generate educational path for: ${node.title}`,
       responseMeta: JSON.stringify({ count: concepts.length }),
     });
